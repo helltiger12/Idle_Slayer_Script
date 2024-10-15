@@ -160,6 +160,26 @@ Func Main()
 			SyncProcess(True)
 		EndIf
 
+		; Collect Minions before Leadership perk.
+		PixelSearch(96, 110, 96, 110, 0xFFFF7A, 2)
+		If Not @error Then
+			MouseClick("left", 95, 90, 1, 0) ;This opens the Ascension Screen
+		 	Sleep(150)
+			PixelSearch(148, 658, 148, 658, 0x8E3625)
+			Sleep(150)
+			If Not @error Then
+		 			MouseClick("left", 332, 680, 1, 0)
+					SyncProcess(False)
+		 			MinionsBeforeLeadership()
+		 			SyncProcess(True)
+				Else
+					MouseClick("left", 93, 680, 1, 0)
+					Sleep(200)
+					ControlSend("Idle Slayer", "", "", "{Esc}")
+					WriteInLogs("Close Menu")
+			EndIf
+		EndIf
+
 
 		; Chest-hunt
 		PixelSearch(187, 296, 187, 296, 0xFFBB31)
@@ -434,6 +454,195 @@ Func CollectMinion()
 	;Click Exit
 	MouseClick("left", 570, 694, 1, 0)
 EndFunc   ;==>CollectMinion
+
+Func MinionsBeforeLeadership()
+	;Click ascension button
+	MouseClick("left", 95, 90, 1, 0)
+	Sleep(400)
+	;Click ascension tab
+	MouseClick("left", 93, 680, 1, 0)
+	Sleep(200)
+	;Click ascension tree tab
+	MouseClick("left", 193, 680, 1, 0)
+	Sleep(200)
+	;Click minion tab
+	MouseClick("left", 332, 680, 1, 0)
+	Sleep(200)
+
+	;Check if the daily bonus is ready but need to collect minions and run minions before claiming.
+	PixelSearch(290, 240, 290, 240, 0x454545)
+	If @error Then
+		MouseMove(300, 300, 0)
+			Do
+				MouseWheel($MOUSE_WHEEL_UP, 10)
+				;Top of searchbar
+				PixelSearch(605, 150, 605, 150, 0xD6D6D6)
+			Until @error
+		Sleep(400)
+
+		Local $aLocation
+		While 1
+			;Check if there is any green buy boxes
+			$aLocation = PixelSearch(405, 247, 576, 648, 0x11AA23, 9)
+			If @error Then
+				;Move mouse on ScrollBar
+				MouseMove(300, 300, 0)
+				MouseWheel($MOUSE_WHEEL_DOWN, 1)
+				;Check gray scroll bar is there
+				PixelSearch(605, 150, 605, 150, 0xD6D6D6)
+				If @error Then
+					ExitLoop
+				EndIf
+				Sleep(10)
+			Else
+				;Click Green buy box
+				MouseClick("left", $aLocation[0], $aLocation[1], 5, 0)
+			EndIf
+		WEnd
+	EndIf
+	MouseMove(300, 300, 0)
+	Do
+		MouseWheel($MOUSE_WHEEL_UP, 10)
+		;Top of searchbar
+		PixelSearch(605, 150, 605, 150, 0xD6D6D6)
+		Until @error
+	Sleep(400)
+
+	PixelSearch(333, 148, 333, 148, 0x454545)
+	If @error Then
+	PixelSearch(405, 247, 576, 648, 0x11AA23, 9)
+		;Click Claim All
+		MouseClick("left", 500, 200, 5, 0)
+		Sleep(200)
+		;Click Send All
+		MouseClick("left", 500, 200, 5, 0)
+		Sleep(200)
+		;Claim Daily Bonus
+		MouseClick("left", 500, 200, 1, 0)
+		Sleep(200)
+		WriteInLogs("Minions Collect with Daily Bonus")
+	Else
+	PixelSearch(405, 247, 576, 648, 0x11AA23, 9)
+		;Click Claim All and Send
+		MouseClick("left", 500, 200, 2, 0)
+		Sleep(250)
+		MouseClick("left", 500, 365, 2, 0)
+		Sleep(250)
+		MouseClick("left", 500, 505, 2, 0)
+		Sleep(250)
+		MouseMove(300, 300, 0)
+		Do
+			MouseWheel($MOUSE_WHEEL_DOWN, 10)
+			;Top of searchbar
+			PixelSearch(606, 643, 606, 643, 0xD6D6D6)
+		Until @error
+		Sleep(400)
+		MouseClick("left", 500, 425, 2, 0)
+		Sleep(250)
+		MouseClick("left", 500, 575, 2, 0)
+		Sleep(250)
+		MouseWheel($MOUSE_WHEEL_UP, 10)
+		Sleep(250)
+		WriteInLogs("Minions Collect and Start Mission.")
+	EndIf
+
+	;Check if Daily Bonus is available
+	PixelSearch(28, 141, 606, 236, 0xFF327C, 4)
+	If Not @error Then
+		MouseClick("left", 310, 180, 1, 0)
+		Sleep(200)
+		WriteInLogs("Collect Minion Daily Bonus")
+	EndIf
+
+	;Send ESC to close menu
+	ControlSend("Idle Slayer", "", "", "{Esc}")
+EndFunc   ;==>MinionsBeforeLeadership
+
+Func CirclePortals()
+	;Check if portal button is visible
+	Local $iPortalVisible = 0
+	PixelSearch(1180, 180, 1180, 180, 0x830399)
+	If @error Then
+		$iPortalVisible += 1
+	EndIf
+	PixelSearch(1180, 180, 1180, 180, 0x290130)
+	If @error Then
+		$iPortalVisible += 1
+	EndIf
+
+	If $iPortalVisible == 2 Then
+		Return
+	EndIf
+
+	;Check if timer is up
+	PixelSearch(1154, 144, 1210, 155, 0xFFFFFF, 9)
+	If @error Then
+		SyncProcess(False)
+		;Click portal button
+		MouseClick("left", 1180, 150, 1, 0)
+		Sleep(300)
+
+		;Select destination
+		;Top of scrollbar
+		MouseMove(867, 300, 0)
+		Sleep(200)
+		Do
+			MouseWheel($MOUSE_WHEEL_UP, 20)
+			;Top of searchbar
+			PixelSearch(875, 275, 875, 275, 0xD6D6D6)
+		Until @error
+		Sleep(400)
+
+		Local $sColor = 0xFFFFFF
+		Switch $iCirclePortalsCount
+			Case 1
+				$sColor = 0x72FBFF
+			Case 2
+				$sColor = 0x510089
+			Case 3
+				$sColor = 0x00D0FF
+			Case 4
+				$sColor = 0x00A197
+			Case 5
+				$sColor = 0x00017B
+			Case 6
+				$sColor = 0xE79CC4
+			Case 7
+				$sColor = 0x00FFBA
+			Case 8
+				$sColor = 0xCA484D
+		EndSwitch
+		Local $aLocation
+		While 1
+			$aLocation = PixelSearch(491, 266, 491, 540, $sColor)
+			If @error Then
+				;Check gray scroll bar is there
+				PixelSearch(875, 536, 875, 536, 0xD6D6D6)
+				If @error Then
+					ExitLoop
+				EndIf
+				Sleep(10)
+				;Move mouse on ScrollBar
+				MouseMove(867, 300, 0)
+				MouseWheel($MOUSE_WHEEL_DOWN, 1)
+			Else
+				;Click portal
+				MouseClick("left", $aLocation[0], $aLocation[1], 1, 0)
+				Sleep(300)
+				ExitLoop
+			EndIf
+		WEnd
+
+		$iCirclePortalsCount += 1
+		If $iCirclePortalsCount > 8 Then
+			$iCirclePortalsCount = 1
+		EndIf
+		SaveSettings()
+		WriteInLogs("CirclePortals")
+		Sleep(10000)
+		SyncProcess(True)
+	EndIf
+EndFunc   ;==>CirclePortals
 
 Func CirclePortals()
 	;Check if portal button is visible
